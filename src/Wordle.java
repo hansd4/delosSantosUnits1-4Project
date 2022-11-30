@@ -19,6 +19,7 @@ public class Wordle {
     private List<Player> playerList = new ArrayList<>();
     private boolean on = true;
     private boolean loggedIn = true;
+    private boolean hardMode = false;
     private DecimalFormat percentFormat = new DecimalFormat("##.##");
 
     public Wordle() throws Exception {
@@ -98,6 +99,7 @@ public class Wordle {
                 }
             }
         }
+        scan.close();
     }
 
     private void tutorial() {
@@ -129,7 +131,33 @@ public class Wordle {
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getMaxStreak() + ConsoleColors.RESET + " Max Streak");
         System.out.println();
         // implement guess distribution display
-        System.out.println("")
+        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "GUESS DISTRIBUTION" + ConsoleColors.RESET);
+        List<Integer> guessDist = currentPlayer.getGuessDist();
+        for (int i = 1; i <= 6; i++) {
+            System.out.print(ConsoleColors.WHITE_BOLD_BRIGHT + i + ConsoleColors.RESET + " - " + guessDist.get(i));
+            for (int j = 0; j < guessDist.get(i); j++) {
+                System.out.print("*");
+            }
+            System.out.println();
+        }
+    }
+
+    private void settings() {
+        Scanner scan = new Scanner(System.in);
+
+        System.out.println();
+        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Settings" + ConsoleColors.RESET);
+        System.out.println();
+        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Hard Mode" + ConsoleColors.RESET);
+        System.out.println("Any revealed hints must be used in subsequent guesses");
+        if (hardMode) {
+            System.out.println("Enable? (y/n)");
+            String choice = scan.nextLine();
+
+        } else {
+
+        }
+        scan.close();
     }
 
     private void logOut() {
