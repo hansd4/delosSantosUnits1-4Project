@@ -11,35 +11,50 @@ import java.text.DecimalFormat;
    https://www.w3schools.com/java/java_arraylist.asp
    https://www.vojtechruzicka.com/java-enhanced-switch/
    https://www2.cs.arizona.edu/classes/cs210/fall17/lectures/decimal_format.pdf
+   https://stackoverflow.com/questions/4404084/check-if-a-value-exists-in-arraylist
  */
 
 public class Wordle {
-    private List<String> words = new ArrayList<>();
-    private Player currentPlayer = null;
-    private List<Player> playerList = new ArrayList<>();
-    private boolean on = true;
-    private boolean loggedIn = true;
-    private boolean hardMode = false;
-    private DecimalFormat percentFormat = new DecimalFormat("##.##");
+    private List<String> words;
+    private Player currentPlayer;
+    private List<Player> playerList;
+    private boolean on;
+    private boolean loggedIn;
+    private boolean hardMode;
+    private DecimalFormat percentFormat;
+    private Scanner scan;
+    private String word;
+    private String guess;
+    private boolean validGuess;
+    private int guessNum;
+    private boolean win;
 
     public Wordle() throws Exception {
+        words = new ArrayList<>();
         File file = new File(System.getProperty("user.dir") + File.separator + "words.txt");
-        Scanner scan = new Scanner(file);
+        Scanner scanFile = new Scanner(file);
 
-        while (scan.hasNextLine()) {
-            words.add(scan.nextLine());
+        while (scanFile.hasNextLine()) {
+            words.add(scanFile.nextLine());
         }
 
-        scan.close();
-    }
+        scanFile.close();
 
-    private String newWord() {
-        return words.get((int) (Math.random() * words.size()));
+        playerList = new ArrayList<>();
+        on = true;
+        loggedIn = true;
+        hardMode = false;
+        percentFormat = new DecimalFormat("##.##");
+        Scanner scan = new Scanner(System.in);
+
+        word = "";
+        guess = "";
+        validGuess = false;
+        guessNum = 1;
+        win = false;
     }
 
     public void start() {
-        Scanner scan = new Scanner(System.in);
-
         while (on) {
             int logInOrQuit = 0;
             while (logInOrQuit != 1 && logInOrQuit != 2) {
@@ -99,7 +114,23 @@ public class Wordle {
                 }
             }
         }
-        scan.close();
+    }
+
+    private void play() {
+        newWord();
+        System.out.println();
+        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Wordle" + ConsoleColors.RESET);
+        System.out.println();
+        while (guessNum <= 6 && !win) {
+            while (!validGuess) {
+                guess = scan.nextLine();
+                validGuess = words.contains(guess);
+                if (!validGuess) {
+                    System.out.println("Not in word list");
+                }
+            }
+            System.out.print("\r");
+        }
     }
 
     private void tutorial() {
@@ -130,7 +161,6 @@ public class Wordle {
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getStreak() + ConsoleColors.RESET + " Current Streak");
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getMaxStreak() + ConsoleColors.RESET + " Max Streak");
         System.out.println();
-        // implement guess distribution display
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "GUESS DISTRIBUTION" + ConsoleColors.RESET);
         List<Integer> guessDist = currentPlayer.getGuessDist();
         for (int i = 1; i <= 6; i++) {
@@ -143,21 +173,27 @@ public class Wordle {
     }
 
     private void settings() {
-        Scanner scan = new Scanner(System.in);
-
         System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Settings" + ConsoleColors.RESET);
         System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Hard Mode" + ConsoleColors.RESET);
         System.out.println("Any revealed hints must be used in subsequent guesses");
-        if (hardMode) {
-            System.out.println("Enable? (y/n)");
-            String choice = scan.nextLine();
+        System.out.println(hardMode ? "Enabled." : "Disabled.");
 
-        } else {
-
+        String choice = "";
+        while (!choice.equals("y") && !choice.equals("n")) {
+            System.out.print(hardMode ? "Disable?" : "Enable?" + "(y/n): ");
+            choice = scan.nextLine();
+            if (!choice.equals("y") && !choice.equals("n")) {
+                System.out.println("Invalid choice, try again: ");
+            }
         }
-        scan.close();
+
+        if (choice.equals("y")) {
+            switchMode();
+        } else {
+            System.out.println("Quitting to Main Menu...");
+        }
     }
 
     private void logOut() {
@@ -165,5 +201,18 @@ public class Wordle {
         System.out.println("Logged out.");
         loggedIn = false;
         currentPlayer = null;
+    }
+
+    private void switchMode() {
+        hardMode = !hardMode;
+        System.out.println("Hard mode is now " + (hardMode ? "enabled." : "disabled."));
+    }
+
+    private void newWord() {
+        word = words.get((int) (Math.random() * words.size()));
+    }
+
+    private String colorWord() {
+        // color in the word to be returned in the play method
     }
 }
