@@ -1,3 +1,4 @@
+import java.io.Console;
 import java.io.File;
 import java.util.*;
 import java.text.DecimalFormat;
@@ -213,6 +214,27 @@ public class Wordle {
     }
 
     private String colorWord() {
-        // color in the word to be returned in the play method
+        String currentChar = "";
+        String coloredWord = "";
+        for (int i = 0; i < guess.length(); i++) {
+            currentChar = guess.substring(i, i+1);
+            if (currentChar.equals(word.substring(i, i+1))) {
+                coloredWord += ConsoleColors.GREEN_BACKGROUND + currentChar + ConsoleColors.RESET;
+            } else if (containsChar(currentChar)) {
+                coloredWord += ConsoleColors.YELLOW_BACKGROUND + currentChar + ConsoleColors.RESET;
+            } else {
+                coloredWord += ConsoleColors.BLACK_BACKGROUND_BRIGHT + currentChar + ConsoleColors.RESET;
+            }
+        }
+        return coloredWord;
+    }
+
+    private boolean containsChar(String c) {
+        for (int i = 0; i < word.length(); i++) {
+            if (word.substring(i, i+1).equals(c)) {
+                return true;
+            }
+        }
+        return false;
     }
 }
