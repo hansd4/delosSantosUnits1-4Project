@@ -36,7 +36,7 @@ public class Wordle {
         Scanner scanFile = new Scanner(file);
 
         while (scanFile.hasNextLine()) {
-            words.add(scanFile.nextLine());
+            words.add(scanFile.nextLine().toUpperCase());
         }
 
         scanFile.close();
@@ -46,7 +46,7 @@ public class Wordle {
         loggedIn = true;
         hardMode = false;
         percentFormat = new DecimalFormat("##.##");
-        Scanner scan = new Scanner(System.in);
+        scan = new Scanner(System.in);
 
         word = "";
         guess = "";
@@ -124,14 +124,24 @@ public class Wordle {
         System.out.println();
         while (guessNum <= 6 && !win) {
             while (!validGuess) {
-                guess = scan.nextLine();
+                guess = scan.nextLine().toUpperCase();
                 validGuess = words.contains(guess);
                 if (!validGuess) {
                     System.out.println("Not in word list");
                 }
             }
-            System.out.print("\r");
+            System.out.println("\r" + colorWord());
+            guessNum++;
+            if (word.equals(guess)) {
+                win = true;
+                System.out.println("You win!");
+                currentPlayer.endRound(win, guessNum);
+            } else if (guessNum > 6) {
+                System.out.println(word);
+                currentPlayer.endRound(win, guessNum);
+            }
         }
+        stats();
     }
 
     private void tutorial() {
