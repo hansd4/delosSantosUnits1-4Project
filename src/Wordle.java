@@ -21,7 +21,6 @@ public class Wordle {
     private List<Player> playerList;
     private boolean on;
     private boolean loggedIn;
-    private boolean hardMode;
     private DecimalFormat percentFormat;
     private Scanner scan;
     private String word;
@@ -44,7 +43,6 @@ public class Wordle {
         playerList = new ArrayList<>();
         on = true;
         loggedIn = true;
-        hardMode = false;
         percentFormat = new DecimalFormat("##.##");
         scan = new Scanner(System.in);
 
@@ -70,7 +68,7 @@ public class Wordle {
             }
 
             on = logInOrQuit != 2;
-            if (logInOrQuit == 1) {
+            if (on) {
                 System.out.println();
                 System.out.println("~~~~~~~~~~Wordle~~~~~~~~~~");
                 System.out.print("Enter your name to continue: ");
@@ -87,11 +85,12 @@ public class Wordle {
                     System.out.println("Welcome, " + currentPlayer.getName());
                 }
 
+                loggedIn = true;
                 while (loggedIn) {
                     int choice = 0;
                     System.out.println();
-                    System.out.println("Main Menu");
-                    while (choice < 1 && choice > 5) {
+                    System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Main Menu" + ConsoleColors.RESET);
+                    while (choice < 1 || choice > 5) {
                         System.out.println();
                         System.out.println("1. Play");
                         System.out.println("2. Help");
@@ -100,7 +99,7 @@ public class Wordle {
                         System.out.println("5. Log Out");
                         choice = scan.nextInt();
                         scan.nextLine();
-                        if (choice < 1 && choice > 5) {
+                        if (choice < 1 || choice > 5) {
                             System.out.print("Invalid choice, try again: ");
                         }
                     }
@@ -119,7 +118,6 @@ public class Wordle {
 
     private void play() {
         newWord();
-        System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Wordle" + ConsoleColors.RESET);
         System.out.println();
         while (guessNum <= 6 && !win) {
@@ -130,22 +128,26 @@ public class Wordle {
                     System.out.println("Not in word list");
                 }
             }
+            validGuess = false;
             System.out.println("\r" + colorWord());
             guessNum++;
             if (word.equals(guess)) {
                 win = true;
-                System.out.println("You win!");
+                System.out.println("Spectacular");
                 currentPlayer.endRound(win, guessNum);
             } else if (guessNum > 6) {
                 System.out.println(word);
                 currentPlayer.endRound(win, guessNum);
             }
         }
+        System.out.println();
         stats();
+        validGuess = false;
+        guessNum = 0;
+        win = false;
     }
 
     private void tutorial() {
-        System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "How to Play" + ConsoleColors.RESET);
         System.out.println();
         System.out.println("Guess the Wordle in 6 tries\n-Each guess must be a valid 5-letter word\n-The color of the tiles will change to show how close your guess was to the word.");
@@ -160,22 +162,20 @@ public class Wordle {
         System.out.println();
         System.out.println("VAG" + ConsoleColors.BLACK_BACKGROUND_BRIGHT + "U" + ConsoleColors.RESET + "E");
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "U" + ConsoleColors.RESET + " is not in the word in any spot.");
-        System.out.println();
     }
 
     private void stats() {
-        System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Statistics" + ConsoleColors.RESET);
         System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getRoundsPlayed() + ConsoleColors.RESET + " Played");
-        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + percentFormat.format((double) currentPlayer.getWins() / currentPlayer.getRoundsPlayed()) + ConsoleColors.RESET + " Win %");
+        System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + percentFormat.format(((double) currentPlayer.getWins() / currentPlayer.getRoundsPlayed()) * 100) + ConsoleColors.RESET + " Win %");
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getStreak() + ConsoleColors.RESET + " Current Streak");
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + currentPlayer.getMaxStreak() + ConsoleColors.RESET + " Max Streak");
         System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "GUESS DISTRIBUTION" + ConsoleColors.RESET);
         List<Integer> guessDist = currentPlayer.getGuessDist();
         for (int i = 1; i <= 6; i++) {
-            System.out.print(ConsoleColors.WHITE_BOLD_BRIGHT + i + ConsoleColors.RESET + " - " + guessDist.get(i));
+            System.out.print(ConsoleColors.WHITE_BOLD_BRIGHT + i + ConsoleColors.RESET + " - " + guessDist.get(i) + " ");
             for (int j = 0; j < guessDist.get(i); j++) {
                 System.out.print("*");
             }
@@ -184,16 +184,15 @@ public class Wordle {
     }
 
     private void settings() {
-        System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Settings" + ConsoleColors.RESET);
         System.out.println();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Hard Mode" + ConsoleColors.RESET);
         System.out.println("Any revealed hints must be used in subsequent guesses");
-        System.out.println(hardMode ? "Enabled." : "Disabled.");
+        System.out.println(currentPlayer.isHardMode() ? "Enabled." : "Disabled.");
 
         String choice = "";
         while (!choice.equals("y") && !choice.equals("n")) {
-            System.out.print(hardMode ? "Disable?" : "Enable?" + "(y/n): ");
+            System.out.print((currentPlayer.isHardMode() ? "Disable?" : "Enable?") + "(y/n): ");
             choice = scan.nextLine();
             if (!choice.equals("y") && !choice.equals("n")) {
                 System.out.println("Invalid choice, try again: ");
@@ -201,22 +200,17 @@ public class Wordle {
         }
 
         if (choice.equals("y")) {
-            switchMode();
+            currentPlayer.toggleHardMode();
+            System.out.println("Hard mode is now " + (currentPlayer.isHardMode() ? "enabled." : "disabled."));
         } else {
             System.out.println("Quitting to Main Menu...");
         }
     }
 
     private void logOut() {
-        System.out.println();
         System.out.println("Logged out.");
         loggedIn = false;
         currentPlayer = null;
-    }
-
-    private void switchMode() {
-        hardMode = !hardMode;
-        System.out.println("Hard mode is now " + (hardMode ? "enabled." : "disabled."));
     }
 
     private void newWord() {

@@ -2,6 +2,7 @@ import java.util.*;
 
 public class Player {
     private String name;
+    private boolean hardMode;
     private int roundsPlayed;
     private int wins;
     private int streak;
@@ -24,22 +25,8 @@ public class Player {
         return name;
     }
 
-    public void setName(String newName) {
-        name = newName;
-    }
-
-    public void endRound(boolean win, int guess) {
-        roundsPlayed++;
-        if (win) {
-            wins++;
-            streak++;
-            if (streak > maxStreak) {
-                maxStreak = streak;
-            }
-            guessDist.set(guess, guessDist.get(guess) + 1);
-        } else {
-            streak = 0;
-        }
+    public boolean isHardMode() {
+        return hardMode;
     }
 
     public int getRoundsPlayed() {
@@ -60,5 +47,23 @@ public class Player {
 
     public List<Integer> getGuessDist() {
         return guessDist;
+    }
+
+    public void toggleHardMode() {
+        hardMode = !hardMode;
+    }
+
+    public void endRound(boolean win, int guess) {
+        roundsPlayed++;
+        if (win) {
+            wins++;
+            streak++;
+            if (streak > maxStreak) {
+                maxStreak = streak;
+            }
+            guessDist.set(guess, guessDist.get(guess) + 1);
+        } else {
+            streak = 0;
+        }
     }
 }
