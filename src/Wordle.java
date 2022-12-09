@@ -1,4 +1,3 @@
-import java.io.Console;
 import java.io.File;
 import java.util.*;
 import java.text.DecimalFormat;
@@ -25,6 +24,7 @@ public class Wordle {
     private Scanner scan;
     private String word;
     private String guess;
+    private String wordKey;
     private boolean validGuess;
     private int guessNum;
     private boolean win;
@@ -48,6 +48,7 @@ public class Wordle {
 
         word = "";
         guess = "";
+        wordKey = "     ";
         validGuess = false;
         guessNum = 1;
         win = false;
@@ -123,8 +124,7 @@ public class Wordle {
         while (guessNum <= 6 && !win) {
             while (!validGuess) {
                 guess = scan.nextLine().toUpperCase();
-                validGuess = words.contains(guess);
-                if (!validGuess) {
+                if (!checkGuess()) {
                     System.out.println("Not in word list");
                 }
             }
@@ -142,6 +142,7 @@ public class Wordle {
         }
         System.out.println();
         stats();
+        wordKey = "     ";
         validGuess = false;
         guessNum = 0;
         win = false;
@@ -220,12 +221,17 @@ public class Wordle {
     private String colorWord() {
         String currentChar = "";
         String coloredWord = "";
+        String w = word;
         for (int i = 0; i < guess.length(); i++) {
             currentChar = guess.substring(i, i+1);
-            if (currentChar.equals(word.substring(i, i+1))) {
+            if (currentChar.equals(w.substring(i, i+1))) {
                 coloredWord += ConsoleColors.GREEN_BACKGROUND + currentChar + ConsoleColors.RESET;
-            } else if (containsChar(currentChar)) {
+                w = removeChar(w, i);
+                wordKey = insertChar(wordKey, currentChar, i);
+            } else if (word.contains(currentChar)) {
                 coloredWord += ConsoleColors.YELLOW_BACKGROUND + currentChar + ConsoleColors.RESET;
+                // implement word key for yellow chars
+                w = removeChar(w, w.indexOf(currentChar));
             } else {
                 coloredWord += ConsoleColors.BLACK_BACKGROUND_BRIGHT + currentChar + ConsoleColors.RESET;
             }
@@ -233,12 +239,20 @@ public class Wordle {
         return coloredWord;
     }
 
-    private boolean containsChar(String c) {
-        for (int i = 0; i < word.length(); i++) {
-            if (word.substring(i, i+1).equals(c)) {
-                return true;
-            }
+    private String removeChar(String w, int c) {
+        return w.substring(0, c) + " " + w.substring(c + 1);
+    }
+
+    private String insertChar(String w, String c, int i) {
+        return w.substring(0, i) + c + w.substring(i + 1);
+    }
+
+    private boolean checkGuess() {
+        if (currentPlayer.isHardMode()) {
+
+        } else {
+            validGuess = words.contains(guess);
         }
-        return false;
+        return validGuess;
     }
 }
