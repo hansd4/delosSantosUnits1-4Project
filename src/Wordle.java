@@ -12,10 +12,13 @@ import java.text.DecimalFormat;
    https://www.vojtechruzicka.com/java-enhanced-switch/
    https://www2.cs.arizona.edu/classes/cs210/fall17/lectures/decimal_format.pdf
    https://stackoverflow.com/questions/4404084/check-if-a-value-exists-in-arraylist
+   https://www.educative.io/answers/how-to-create-a-dictionary-in-java
+   https://www.geeksforgeeks.org/list-clear-method-in-java-with-examples/
  */
 
 public class Wordle {
-    private List<String> words;
+    private final String ALPHABET = "QWERTYUIOPASDFGHJKLZXCVBNM";
+    private final List<String> WORDS;
     private Player currentPlayer;
     private List<Player> playerList;
     private boolean on;
@@ -24,18 +27,18 @@ public class Wordle {
     private Scanner scan;
     private String word;
     private String guess;
-    private String wordKey;
+    private Hashtable<String, String> charStats;
     private boolean validGuess;
     private int guessNum;
     private boolean win;
 
     public Wordle() throws Exception {
-        words = new ArrayList<>();
+        WORDS = new ArrayList<>();
         File file = new File(System.getProperty("user.dir") + File.separator + "words.txt");
         Scanner scanFile = new Scanner(file);
 
         while (scanFile.hasNextLine()) {
-            words.add(scanFile.nextLine().toUpperCase());
+            WORDS.add(scanFile.nextLine().toUpperCase());
         }
 
         scanFile.close();
@@ -48,9 +51,9 @@ public class Wordle {
 
         word = "";
         guess = "";
-        wordKey = "     ";
+        charStats = new Hashtable<>();
         validGuess = false;
-        guessNum = 1;
+        guessNum = 0;
         win = false;
     }
 
@@ -81,7 +84,11 @@ public class Wordle {
                     }
                 }
                 if (currentPlayer == null) {
-                    playerList.add(new Player(playerName));
+                    if (playerName.equals("")) {
+                        playerList.add(new Player());
+                    } else {
+                        playerList.add(new Player(playerName));
+                    }
                     currentPlayer = playerList.get(playerList.size() - 1);
                     System.out.println("Welcome, " + currentPlayer.getName());
                 }
@@ -120,13 +127,13 @@ public class Wordle {
     private void play() {
         newWord();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Wordle" + ConsoleColors.RESET);
-        System.out.println();
+        // debug
+        System.out.println("Word: " + word);
         while (guessNum <= 6 && !win) {
             while (!validGuess) {
+                System.out.println(keyboard());
                 guess = scan.nextLine().toUpperCase();
-                if (!checkGuess()) {
-                    System.out.println("Not in word list");
-                }
+                validGuess = checkGuess();
             }
             validGuess = false;
             System.out.println("\r" + colorWord());
@@ -134,15 +141,15 @@ public class Wordle {
             if (word.equals(guess)) {
                 win = true;
                 System.out.println("Spectacular");
-                currentPlayer.endRound(win, guessNum);
+                currentPlayer.endRound(guessNum);
             } else if (guessNum > 6) {
                 System.out.println(word);
-                currentPlayer.endRound(win, guessNum);
+                currentPlayer.endRound();
             }
         }
         System.out.println();
         stats();
-        wordKey = "     ";
+        charStats.clear();
         validGuess = false;
         guessNum = 0;
         win = false;
@@ -193,7 +200,7 @@ public class Wordle {
 
         String choice = "";
         while (!choice.equals("y") && !choice.equals("n")) {
-            System.out.print((currentPlayer.isHardMode() ? "Disable?" : "Enable?") + "(y/n): ");
+            System.out.print((currentPlayer.isHardMode() ? "Disable?" : "Enable?") + " (y/n): ");
             choice = scan.nextLine();
             if (!choice.equals("y") && !choice.equals("n")) {
                 System.out.println("Invalid choice, try again: ");
@@ -215,11 +222,11 @@ public class Wordle {
     }
 
     private void newWord() {
-        word = words.get((int) (Math.random() * words.size()));
+        word = WORDS.get((int) (Math.random() * WORDS.size()));
     }
 
     private String colorWord() {
-        String currentChar = "";
+        String currentChar;
         String coloredWord = "";
         String w = word;
         for (int i = 0; i < guess.length(); i++) {
@@ -227,13 +234,14 @@ public class Wordle {
             if (currentChar.equals(w.substring(i, i+1))) {
                 coloredWord += ConsoleColors.GREEN_BACKGROUND + currentChar + ConsoleColors.RESET;
                 w = removeChar(w, i);
-                wordKey = insertChar(wordKey, currentChar, i);
-            } else if (word.contains(currentChar)) {
+                charStats.put(currentChar, ConsoleColors.GREEN_BACKGROUND + i);
+            } else if (w.contains(currentChar)) {
                 coloredWord += ConsoleColors.YELLOW_BACKGROUND + currentChar + ConsoleColors.RESET;
-                // implement word key for yellow chars
                 w = removeChar(w, w.indexOf(currentChar));
+                charStats.put(currentChar, ConsoleColors.YELLOW_BACKGROUND);
             } else {
                 coloredWord += ConsoleColors.BLACK_BACKGROUND_BRIGHT + currentChar + ConsoleColors.RESET;
+                charStats.put(currentChar, ConsoleColors.BLACK_BACKGROUND_BRIGHT);
             }
         }
         return coloredWord;
@@ -243,16 +251,70 @@ public class Wordle {
         return w.substring(0, c) + " " + w.substring(c + 1);
     }
 
-    private String insertChar(String w, String c, int i) {
-        return w.substring(0, i) + c + w.substring(i + 1);
+    private boolean checkGuess() {
+        if (WORDS.contains(guess)) {
+            if (currentPlayer.isHardMode()) {
+                for (int i = 0; i < ALPHABET.length(); i++) {
+                    String currentLetter = ALPHABET.substring(i, i + 1);
+                    String state = charStats.get(currentLetter);
+                    if (state != null) {
+                        if (state.substring(0, 5).equals(ConsoleColors.GREEN_BACKGROUND)) {
+                            int correctPos = Integer.parseInt(state.substring(5));
+                            if (!guess.substring(correctPos, correctPos + 1).equals(currentLetter)) {
+                                System.out.println(toOrdinal(correctPos + 1) + " letter must be " + currentLetter);
+                                return false;
+                            }
+                        } else if (state.equals(ConsoleColors.YELLOW_BACKGROUND)) {
+                            if (guess.indexOf(currentLetter) == -1) {
+                                System.out.println("Guess must contain " + currentLetter);
+                                return false;
+                            }
+                        }
+                    }
+                }
+            }
+            return true;
+        }
+        System.out.println("Not in word list");
+        return false;
     }
 
-    private boolean checkGuess() {
-        if (currentPlayer.isHardMode()) {
-
-        } else {
-            validGuess = words.contains(guess);
+    private String toOrdinal(int i) {
+        String ordinalSuffix = "th";
+        if (i / 10 % 10 != 1) {
+            ordinalSuffix = switch (i % 10) {
+                case 1 -> "st";
+                case 2 -> "nd";
+                case 3 -> "rd";
+                default -> "th";
+            };
         }
-        return validGuess;
+        return i + ordinalSuffix;
+    }
+
+    private String keyboard() {
+        String keyboard = "";
+        List<String> lines = new ArrayList<>();
+        lines.add(ALPHABET.substring(0, 10));
+        lines.add(ALPHABET.substring(10, 19));
+        lines.add(ALPHABET.substring(19));
+        for (int i = 0; i < lines.size(); i++) {
+            String letters = lines.get(i);
+            keyboard += "\n";
+            for (int j = 0; j < letters.length(); j++) {
+                String letter = letters.substring(j, j + 1);
+                keyboard += removeIndexNumber(charStats.get(letter)) + letter + ConsoleColors.RESET + " ";
+            }
+        }
+        return keyboard;
+    }
+
+    private String removeIndexNumber(String s) {
+        if (s == null) {
+            return "";
+        } else if (!s.substring(s.length() - 1).equals("m")) {
+            return s.substring(0, s.length() - 1);
+        }
+        return s;
     }
 }

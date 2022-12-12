@@ -45,6 +45,21 @@ public class Player {
     }
 
     /**
+     * Instantiates a Player object, with the default name "Stack Overjoe" (a right wing nickname for Joe Biden and his affinity for the computer sciences)
+     */
+    public Player() {
+        this.name = "Stack Overjoe";
+        roundsPlayed = 0;
+        wins = 0;
+        streak = 0;
+        maxStreak = 0;
+        guessDist = new ArrayList<>();
+        for (int i = 0; i <= 6; i++) {
+            guessDist.add(0);
+        }
+    }
+
+    /**
      * Returns the name of the player
      *
      * @return The name of the player
@@ -115,22 +130,29 @@ public class Player {
     }
 
     /**
-     * Handles statistics at the end of a round of Wordle. Saves to the above instance variables the new number of rounds played, the new number of wins the player has, the player's new win streak, the player's new maximum win streak, and the player's new guess distribution.
+     * Handles statistics at the end of a round of Wordle, in the case that the round was definitively won.
+     * <p>
+     * Saves to the above instance variables the new number of rounds played, the new number of wins the player has, the player's new win streak, the player's new maximum win streak, and the player's new guess distribution.
      *
-     * @param win Whether or not the player won this round.
      * @param guess The number of guesses it took to end the round.
      */
-    public void endRound(boolean win, int guess) {
+    public void endRound(int guess) {
         roundsPlayed++;
-        if (win) {
-            wins++;
-            streak++;
-            if (streak > maxStreak) {
-                maxStreak = streak;
-            }
-            guessDist.set(guess, guessDist.get(guess) + 1);
-        } else {
-            streak = 0;
+        wins++;
+        streak++;
+        if (streak > maxStreak) {
+            maxStreak = streak;
         }
+        guessDist.set(guess, guessDist.get(guess) + 1);
+    }
+
+    /**
+     * Handles statistics at the end of a round of Wordle, in the case that the round was definitively lost.
+     * <p>
+     * Saves to the above instance variables the new number of rounds played, the new number of wins the player has, the player's new win streak, the player's new maximum win streak, and the player's new guess distribution.
+     */
+    public void endRound() {
+        roundsPlayed++;
+        streak = 0;
     }
 }
