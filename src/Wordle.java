@@ -7,13 +7,10 @@ import java.text.DecimalFormat;
    Reading a text file: https://www.geeksforgeeks.org/different-ways-reading-text-file-java/
    Adding values to a list: https://www.digitalocean.com/community/tutorials/java-list-add-addall-methods
    Go back to the beginning of the line (\r): https://stackoverflow.com/questions/7522022/how-to-delete-stuff-printed-to-console-by-system-out-println
-   https://www.geeksforgeeks.org/how-to-replace-a-element-in-java-arraylist/
-   https://www.w3schools.com/java/java_arraylist.asp
-   https://www.vojtechruzicka.com/java-enhanced-switch/
-   https://www2.cs.arizona.edu/classes/cs210/fall17/lectures/decimal_format.pdf
-   https://stackoverflow.com/questions/4404084/check-if-a-value-exists-in-arraylist
-   https://www.educative.io/answers/how-to-create-a-dictionary-in-java
-   https://www.geeksforgeeks.org/list-clear-method-in-java-with-examples/
+   Replacing an element in a list: https://www.geeksforgeeks.org/how-to-replace-a-element-in-java-arraylist/
+   contains(): https://stackoverflow.com/questions/4404084/check-if-a-value-exists-in-arraylist
+   Hashtables: https://www.educative.io/answers/how-to-create-a-dictionary-in-java
+   Clearing hashtables: https://www.geeksforgeeks.org/list-clear-method-in-java-with-examples/
  */
 
 public class Wordle {
@@ -127,8 +124,6 @@ public class Wordle {
     private void play() {
         newWord();
         System.out.println(ConsoleColors.WHITE_BOLD_BRIGHT + "Wordle" + ConsoleColors.RESET);
-        // debug
-        System.out.println("Word: " + word);
         while (guessNum <= 6 && !win) {
             while (!validGuess) {
                 System.out.println(keyboard());
